@@ -2,6 +2,7 @@ package wrappedbadger
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 )
 
@@ -13,9 +14,15 @@ func badgerError(err error) error {
 	return wrapError("badger error", err)
 }
 
+var ErrCacheStoreNoValue = errors.New("no value")
+
 type CacheStore struct {
 	*Store
 	Key []byte
+}
+
+func (c *CacheStore) Close() error {
+	return c.Store.Close()
 }
 
 func (c *CacheStore) Load(v interface{}) error {
@@ -23,11 +30,11 @@ func (c *CacheStore) Load(v interface{}) error {
 	if err != nil {
 		return badgerError(err)
 	}
-	if v != nil {
-		err := json.Unmarshal(b, v)
-		if err != nil {
-			return fmt.Errorf("error unmarshaling: %v", err)
-		}
+	if b == nil {
+		return ErrCacheStoreNoValue
+	}
+	if err := json.Unmarshal(b, v); err != nil {
+		return fmt.Errorf("error unmarshaling: %v", err)
 	}
 	return nil
 }
