@@ -90,8 +90,7 @@ func (Store *Store) IterateValues(prefix []byte, f func(v []byte) error) error {
 		defer it.Close()
 		for it.Seek(prefix); it.ValidForPrefix(prefix); it.Next() {
 			item := it.Item()
-			err := item.Value(f)
-			if err != nil {
+			if err := item.Value(f); err != nil {
 				if err != ErrBreakIter {
 					return err
 				}
@@ -112,8 +111,7 @@ func (Store *Store) IterateKeys(prefix []byte, f func(k []byte) error) error {
 		it := txn.NewIterator(opts)
 		defer it.Close()
 		for it.Seek(prefix); it.ValidForPrefix(prefix); it.Next() {
-			err := f(it.Item().Key())
-			if err != nil {
+			if err := f(it.Item().Key()); err != nil {
 				if err != ErrBreakIter {
 					return err
 				}
@@ -142,8 +140,7 @@ func (Store *Store) SparseRead(prefix []byte, kfunc func(k []byte) (bool, error)
 				break
 			}
 			if ok {
-				err = it.Item().Value(vfunc)
-				if err != nil {
+				if err = it.Item().Value(vfunc); err != nil {
 					if err != ErrBreakIter {
 						return err
 					}
